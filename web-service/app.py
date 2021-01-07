@@ -1,10 +1,12 @@
 import os
-
+import urllib3
 import flask
 from google.cloud import storage
 import tempfile
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
+FUNCTION_NAME = os.environ.get("FUNCTION_NAME")
+
 app = flask.Flask(__name__)
 storage = storage.Client()
 bucket = storage.bucket(BUCKET_NAME)
@@ -17,6 +19,17 @@ def cat(img):
         blob.download_to_filename(temp.name)
         return flask.send_file(temp.name, attachment_filename=img)
 
+def get_cats(bucket):
+    images = storage.list_blobs(BUCKET_NAME)
+    http = urllib3.PoolManager()
+    
+    cats = []
+    for img in images:
+        r = http.request("GET", FUNCTION_NAME, headers={"Content-Type", "application/json"}, data={"name": "cat"})
+        cats.append({"image": img, "data": r.data})
+    
+    return cats
+
 
 @app.route("/")
 def hello_cats():
@@ -25,7 +38,7 @@ def hello_cats():
             "<h1>I have no cats.</h1>BUCKET_NAME environment variable required."
         )
 
-    cats = storage.list_blobs(BUCKET_NAME)
+    cats = get_cats(BUCKET_NAME)
     return flask.render_template("cats.html", cats=cats)
 
 

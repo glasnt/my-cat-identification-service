@@ -1,7 +1,16 @@
-# My cat photo service
+# My cat photo identification service.
 
 
-To deploy this service onto Google Cloud, you will need to create a project and setup billing
+## Deployment
+
+* Create a Google Cloud Project with active Billing
+  * `PROJECT_ID=(yourproject)
+* Create a service account
+* Prepare Cloud Run service - Build a base container image
+  * `gcloud builds submit --tag gcr.io/${PROJECT_ID}/web-service web-service`
+* Prepare Cloud Function - Bundle the function code
+  * `zip processing-function.zip processing-function/*`
+* Run terraform
 
 ## Automated way
 
@@ -14,29 +23,8 @@ terraform apply
 
 ## Manual way 
 
-Install the gcloud CLI. 
+gcloud buidls usbmit 
 
-Create a storage bucket: 
+terraform apply
 
-```
-gsutil mb gs://${PROJECT_ID}-bucket
-```
-
-Upload images to the bucket. 
-
-Then, to deploy the application, build the container image: 
-
-```
-gcloud builds submit --tag gcr.io/${PROJECT_ID}/helloworld .
-```
-
-
-And deploy the service with this new image:
-
-```
-gcloud run deploy helloworld \
-   --platform managed \
-   --image gcr.io/${PROJECT_ID}/helloworld \
-   --update-env-vars TARGET=gcloud \
-   --allow-unauthenticated 
-```
+upload zipfile to bucket?
