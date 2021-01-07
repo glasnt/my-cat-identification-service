@@ -19,15 +19,20 @@ def cat(img):
         blob.download_to_filename(temp.name)
         return flask.send_file(temp.name, attachment_filename=img)
 
+
 def get_cats(bucket):
     images = storage.list_blobs(BUCKET_NAME)
     http = urllib3.PoolManager()
-    
+
     cats = []
     for img in images:
-        r = http.request("GET", FUNCTION_NAME, headers={"Content-Type", "application/json"}, data={"name": "cat"})
-        cats.append({"image": img, "data": r.data})
-    
+        r = http.request(
+            "GET",
+            FUNCTION_NAME,
+            fields={"bucket": BUCKET_NAME, "resource": img.name},
+        )
+        cats.append({"image": img, "data": r.data.decode('utf-8')})
+
     return cats
 
 

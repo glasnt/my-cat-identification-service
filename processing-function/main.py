@@ -1,16 +1,33 @@
 from flask import escape
 
-def hello_http(request):
-    """HTTP Cloud Function.
-    Args:
-        request (flask.Request): The request object.
-        <https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data>
-    Returns:
-        The response text, or any set of values that can be turned into a
-        Response object using `make_response`
-        <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
+from google.cloud import vision
+client = vision.ImageAnnotatorClient()
+image = vision.Image()
+
+def detect_cat(request):
+    """
+    param:
+      bucket: gcs bucket
+      resource: gcs bucket resource
+
+    returns:
+      information about the image
     """
     request_json = request.get_json(silent=True)
+
+    if request_json and 'bucket' in request_json:
+        bucket = request_json['bucket']
+    if request_json and 'resource' in request_json:
+        resource = request_json['resource']
+
+    uri = f"gs://{bucket}/{resource}"
+
+    image.source.image_uri = uri
+    response = client.label_detection(image=image)
+    labels = response.label_annotations
+    return [l.description for l in labels]
+
+"""
     request_args = request.args
 
     if request_json and 'name' in request_json:
@@ -20,3 +37,4 @@ def hello_http(request):
     else:
         name = 'World'
     return 'Hello {}!'.format(escape(name))
+"""

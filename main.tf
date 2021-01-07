@@ -138,10 +138,19 @@ resource google_storage_bucket source {
 # Upload created zip
 # zip -j processing-function.zip processing-function/*
 # https://github.com/GoogleCloudPlatform/python-docs-samples/issues/1602#issuecomment-415084417
+#
+# terraform apply -target google_cloudfunctions_function.function
+resource "null_resource" "create_archive" {
+  provisioner "local-exec" {
+    command = "zip -j processing-function.zip processing-function/*"
+  }
+}
 resource "google_storage_bucket_object" "archive" {
-  name   = "${local.function_folder}/${timestamp()}.zip"
+  name   = "${local.function_folder}/${timestamp()}.zip" # will delete old items
   bucket = google_storage_bucket.source.name
   source = "${local.function_folder}.zip"
+
+  depends_on = [null_resource.create_archive]
 }
 
 resource "google_cloudfunctions_function" "function" {
@@ -154,5 +163,5 @@ resource "google_cloudfunctions_function" "function" {
   source_archive_bucket = google_storage_bucket.source.name
   source_archive_object = google_storage_bucket_object.archive.name
   trigger_http          = true
-  entry_point           = "hello_http"
+  entry_point           = "detect_cat"
 }
