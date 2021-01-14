@@ -12,6 +12,9 @@ def detect_cat(request):
 
     returns:
       information about the image
+
+    Testing data: {"bucket": "glasnt-terraform-3476-test", "resource": "loan-7AIDE8PrvA0-unsplash.jpg"}
+
     """
     request_json = request.get_json(silent=True)
 
@@ -25,8 +28,9 @@ def detect_cat(request):
     image.source.image_uri = uri
     response = client.label_detection(image=image)
     labels = response.label_annotations
-    return [l.description for l in labels]
-
+    result = ", ".join([l.description for l in labels])
+    print(result)
+    return result
 """
     request_args = request.args
 

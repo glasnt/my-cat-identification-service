@@ -42,6 +42,7 @@ module services {
     "iam.googleapis.com",
     "cloudbuild.googleapis.com",
     "cloudfunctions.googleapis.com",
+    "vision.googleapis.com"
   ]
 }
 
@@ -140,6 +141,8 @@ resource google_storage_bucket source {
 # https://github.com/GoogleCloudPlatform/python-docs-samples/issues/1602#issuecomment-415084417
 #
 # terraform apply -target google_cloudfunctions_function.function
+
+# DON"T USE THIS CHANGE THIS TO https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/archive_file
 resource "null_resource" "create_archive" {
   provisioner "local-exec" {
     command = "zip -j processing-function.zip processing-function/*"
