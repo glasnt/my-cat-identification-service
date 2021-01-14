@@ -1,4 +1,11 @@
-provider google {
+terraform {
+  backend "gcs" {
+    bucket = "glasnt-terraform-3476-tfstate" # REPLACE ME
+    prefix = "test"
+  }
+}
+
+provider "google" {
   project = var.project
 }
 
@@ -7,19 +14,19 @@ provider google {
 # Required Variables
 #
 ####
-variable project {
+variable "project" {
   type        = string
   description = "Google Cloud Platform Project ID"
 }
 
-variable region {
+variable "region" {
   default = "us-central1"
   type    = string
 }
 
 locals {
-  function_folder = "processing-function"
-  service_folder = "web-service"
+  function_folder   = "processing-function"
+  service_folder    = "web-service"
   sampledata_folder = "sample-data"
 
   deployment_name = "cats"
@@ -31,7 +38,7 @@ locals {
 #
 ###
 
-module services {
+module "services" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "~> 10.0"
 
@@ -54,12 +61,12 @@ module services {
 ####
 
 # Media Storage Bucket
-resource google_storage_bucket media {
+resource "google_storage_bucket" "media" {
   name = "${var.project}-media"
 }
 
 # Upload all sample data objects
-resource google_storage_bucket_object cats {
+resource "google_storage_bucket_object" "cats" {
   for_each = fileset("${path.module}/${local.sampledata_folder}", "*")
 
   name   = each.value
@@ -70,11 +77,11 @@ resource google_storage_bucket_object cats {
 # 
 
 # Pre-prepared container
-data google_container_registry_image cats {
+data "google_container_registry_image" "cats" {
   name = local.service_folder
- #  provisioner "local-exec" {
- #    command = "gcloud builds submit web-service --tag gcr.io/${var.project}/cats"
- #  }
+  #  provisioner "local-exec" {
+  #    command = "gcloud builds submit web-service --tag gcr.io/${var.project}/cats"
+  #  }
 }
 
 ####
@@ -84,7 +91,7 @@ data google_container_registry_image cats {
 ###
 
 # Cloud Run Service
-resource google_cloud_run_service cats {
+resource "google_cloud_run_service" "cats" {
   name                       = local.deployment_name
   location                   = var.region
   autogenerate_revision_name = true
@@ -92,12 +99,12 @@ resource google_cloud_run_service cats {
   template {
     spec {
       containers {
-        image = data.google_container_registry_image.cats.image_url
+        image = "${data.google_container_registry_image.cats.image_url}:latest" # TODO(glasnt): this doesn't pickup the actual latest. Maybe run a local-exec to build?
         env {
           name  = "BUCKET_NAME"
           value = google_storage_bucket.media.name
         }
-        env { 
+        env {
           name  = "FUNCTION_NAME"
           value = google_cloudfunctions_function.function.https_trigger_url
         }
@@ -132,7 +139,7 @@ resource "google_cloud_run_service_iam_policy" "noauth" {
 ####
 
 # Source Storage Bucket
-resource google_storage_bucket source {
+resource "google_storage_bucket" "source" {
   name = "${var.project}-source"
 }
 
@@ -141,14 +148,15 @@ resource google_storage_bucket source {
 # https://github.com/GoogleCloudPlatform/python-docs-samples/issues/1602#issuecomment-415084417
 #
 # terraform apply -target google_cloudfunctions_function.function
-data "archive_file" function { 
-    type = "zip"
-    output_path = "function_code_${timestamp()}.zip"
-    source_dir = local.function_folder
-} 
+data "archive_file" "function" {
+  type = "zip"
+  output_path = "function_code_${timestamp()}.zip"
+  source_dir  = local.function_folder
+}
 
 resource "google_storage_bucket_object" "archive" {
   name   = "${local.function_folder}_${timestamp()}.zip" # will delete old items
+
   bucket = google_storage_bucket.source.name
   source = data.archive_file.function.output_path
 
@@ -159,11 +167,17 @@ resource "google_cloudfunctions_function" "function" {
   name        = local.function_folder
   description = "processing function"
   runtime     = "python37"
-  region     = var.region
+  region      = var.region
 
   available_memory_mb   = 128
   source_archive_bucket = google_storage_bucket.source.name
   source_archive_object = google_storage_bucket_object.archive.name
   trigger_http          = true
   entry_point           = "detect_cat"
+}
+
+output "service_url" {
+  value = <<EOF
+  Service deployed to ${google_cloud_run_service.cats.status[0].url} 🐈
+  EOF
 }

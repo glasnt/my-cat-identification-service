@@ -31,14 +31,3 @@ def detect_cat(request):
     result = ", ".join([l.description for l in labels])
     print(result)
     return result
-"""
-    request_args = request.args
-
-    if request_json and 'name' in request_json:
-        name = request_json['name']
-    elif request_args and 'name' in request_args:
-        name = request_args['name']
-    else:
-        name = 'World'
-    return 'Hello {}!'.format(escape(name))
-"""

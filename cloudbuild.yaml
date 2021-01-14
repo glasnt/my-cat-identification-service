@@ -16,12 +16,18 @@ steps:
 
   - id: "tf plan"
     name: "hashicorp/terraform:${_TERRAFORM_VERSION}"
-    args: ["plan"]
+    args: ["plan", "-var", "project=${PROJECT_ID}"]
 
   - id: "tf apply"
     name: "hashicorp/terraform:${_TERRAFORM_VERSION}"
-    args: ["apply -auto-approve -var project=${PROJECT_ID}"]
+    args: ["apply", "-auto-approve", "-var", "project=${PROJECT_ID}"]
 
+  - id: 'deploy'
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: ["run", "deploy", "${_WEB_SERVICE}", "--platform", "managed", "--region", "${_REGION}",
+          "--image", "gcr.io/$PROJECT_ID/${_WEB_SERVICE}"]
 substitutions:
   _WEB_SERVICE: web-service
   _TERRAFORM_VERSION: "0.14.4"
+  _REGION: "us-central1"
