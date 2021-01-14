@@ -1,0 +1,9 @@
+#!include:.gitignore
+
+terraform.*
+.terraform
+
+venv/
+.vscode/
+
+.git/

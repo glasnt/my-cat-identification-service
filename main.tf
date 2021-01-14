@@ -141,19 +141,18 @@ resource google_storage_bucket source {
 # https://github.com/GoogleCloudPlatform/python-docs-samples/issues/1602#issuecomment-415084417
 #
 # terraform apply -target google_cloudfunctions_function.function
+data "archive_file" function { 
+    type = "zip"
+    output_path = "function_code_${timestamp()}.zip"
+    source_dir = local.function_folder
+} 
 
-# DON"T USE THIS CHANGE THIS TO https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/archive_file
-resource "null_resource" "create_archive" {
-  provisioner "local-exec" {
-    command = "zip -j processing-function.zip processing-function/*"
-  }
-}
 resource "google_storage_bucket_object" "archive" {
-  name   = "${local.function_folder}/${timestamp()}.zip" # will delete old items
+  name   = "${local.function_folder}_${timestamp()}.zip" # will delete old items
   bucket = google_storage_bucket.source.name
-  source = "${local.function_folder}.zip"
+  source = data.archive_file.function.output_path
 
-  depends_on = [null_resource.create_archive]
+  depends_on = [data.archive_file.function]
 }
 
 resource "google_cloudfunctions_function" "function" {
