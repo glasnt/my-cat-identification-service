@@ -99,7 +99,7 @@ resource "google_cloud_run_service" "cats" {
   template {
     spec {
       containers {
-        image = "${data.google_container_registry_image.cats.image_url}:latest" # TODO(glasnt): this doesn't pickup the actual latest. Maybe run a local-exec to build?
+        image = "${data.google_container_registry_image.cats.image_url}:latest"
         env {
           name  = "BUCKET_NAME"
           value = google_storage_bucket.media.name

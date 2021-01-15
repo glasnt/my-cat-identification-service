@@ -4,11 +4,11 @@ steps:
   - id: "build image"
     name: "gcr.io/cloud-builders/docker"
     args:
-      ["build", "-t", "gcr.io/${PROJECT_ID}/${_WEB_SERVICE}", "${_WEB_SERVICE}"]
+      ["build", "-t", "gcr.io/${PROJECT_ID}/${_SERVICE_IMAGE}", "${_SERVICE_IMAGE}"]
 
   - id: "push image"
     name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/${PROJECT_ID}/${_WEB_SERVICE}"]
+    args: ["push", "gcr.io/${PROJECT_ID}/${_SERVICE_IMAGE}"]
 
   - id: "tf init"
     name: "hashicorp/terraform:${_TERRAFORM_VERSION}"
@@ -25,9 +25,10 @@ steps:
   - id: 'deploy'
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
-    args: ["run", "deploy", "${_WEB_SERVICE}", "--platform", "managed", "--region", "${_REGION}",
-          "--image", "gcr.io/$PROJECT_ID/${_WEB_SERVICE}"]
+    args: ["run", "deploy", "${_SERVICE_NAME}", "--platform", "managed", "--region", "${_REGION}",
+          "--image", "gcr.io/$PROJECT_ID/${_SERVICE_IMAGE}"]
 substitutions:
-  _WEB_SERVICE: web-service
+  _SERVICE_IMAGE: web-service
+  _SERVICE_NAME: cats
   _TERRAFORM_VERSION: "0.14.4"
   _REGION: "us-central1"

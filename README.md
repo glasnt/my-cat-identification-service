@@ -11,6 +11,7 @@ gsutil mb gs://${PROJECT_ID}-tfstate
 gsutil versioning set on gs://${PROJECT_ID}-tfstate
 ```
 
+
 Set terraform configuration with state location
 
 ```
@@ -24,6 +25,17 @@ terraform apply
 ```
 
 ## Continuous Deployment
+
+Allow Cloud Build editor access
+
+```
+gcloud services enable cloudbuild.googleapis.com compute.googleapis.com cloudresourcemanager.googleapis.com
+
+CLOUDBUILD_SA="$(gcloud projects describe $PROJECT_ID \
+    --format 'value(projectNumber)')@cloudbuild.gserviceaccount.com"
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member serviceAccount:$CLOUDBUILD_SA --role roles/editor
+```
 
 ```
 gcloud builds submit

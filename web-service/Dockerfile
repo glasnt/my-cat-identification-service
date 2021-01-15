@@ -5,6 +5,6 @@ ENV PORT 8080
 
 COPY . ./
 
-RUN pip install Flask gunicorn
+RUN pip install -r requirements.txt
 
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 app:app
