@@ -1,4 +1,56 @@
-<h1>I have cats.</h1>
-{% for cat in cats %}
-<img src="/cat/{{ cat['image'].name }}" />{{cat['data']}}
-{% endfor %}
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+</head>
+<style>
+    .column img {
+        max-height: 400px;
+    }
+
+    .header {
+        margin-top: 3rem;
+        text-align: center;
+    }
+
+    .row {
+        padding: 2rem;
+    }
+
+    .image {
+        text-align: center;
+    }
+</style>
+
+<body>
+    <main class="wrapper">
+
+        <header class="header" id="home">
+            <section class="container">
+                <h1>I have cats.</h1>
+            </section>
+
+        </header>
+        <section class="container">
+            {% for cat in cats %}
+            <div class="row">
+                <div class="column image"><img src="/cat/{{ cat['image'].name }}">
+                </div>
+                <div class="column">{{cat['data']}}</div>
+            </div>
+            {% endfor %}
+        </section>
+        <footer class="footer">
+            <section class="container">
+                <div class="row">
+                    Made with 💜 on Google Cloud
+                </div>
+            </section>
+        </footer>
+    </main>
+</body>
+
+</html>

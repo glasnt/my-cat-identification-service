@@ -30,7 +30,7 @@ locals {
   sampledata_folder = "sample-data"
 
   deployment_name = "cats"
-  cats_worker_sa   = "serviceAccount:${google_service_account.cats_worker.email}"
+  cats_worker_sa  = "serviceAccount:${google_service_account.cats_worker.email}"
 }
 
 ####
@@ -59,7 +59,7 @@ resource "google_service_account" "cats_worker" {
   display_name = "Cats Worker SA"
 }
 
-resource google_project_iam_binding service_permissions {
+resource "google_project_iam_binding" "service_permissions" {
   for_each = toset([
     "run.invoker", "cloudfunctions.invoker"
   ])
@@ -92,6 +92,7 @@ resource "google_storage_bucket_object" "cats" {
 resource "google_storage_bucket_iam_policy" "media" {
   bucket = google_storage_bucket.media.name
 
+  # Generated with assistance from terraformer
   policy_data = <<POLICY
 {
   "bindings": [
@@ -120,7 +121,7 @@ resource "google_storage_bucket_iam_policy" "media" {
 }
 POLICY
 
- # provider = "google-beta"
+  # provider = "google-beta"
 }
 
 # Pre-prepared container
@@ -191,13 +192,13 @@ resource "google_storage_bucket" "source" {
 #
 # terraform apply -target google_cloudfunctions_function.function
 data "archive_file" "function" {
-  type = "zip"
+  type        = "zip"
   output_path = "function_code_${timestamp()}.zip"
   source_dir  = local.function_folder
 }
 
 resource "google_storage_bucket_object" "archive" {
-  name   = "${local.function_folder}_${data.archive_file.function.output_md5}.zip" # will delete old items
+  name = "${local.function_folder}_${data.archive_file.function.output_md5}.zip" # will delete old items
 
   bucket = google_storage_bucket.source.name
   source = data.archive_file.function.output_path
