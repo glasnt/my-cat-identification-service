@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "glasnt-terraform-3476-tfstate" # REPLACE ME
+    bucket = "TFSTATE_BUCKET" # REPLACE ME
     prefix = "test"
   }
 }
@@ -172,6 +172,7 @@ resource "google_cloud_run_service_iam_policy" "noauth" {
   service  = google_cloud_run_service.cats.name
 
   policy_data = data.google_iam_policy.noauth.policy_data
+  depends_on = [google_cloud_run_service.cats]
 }
 
 
