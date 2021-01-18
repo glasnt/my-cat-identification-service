@@ -4,7 +4,7 @@ Uses Vision API to detect images in a Cloud Function. Renders a front end iterat
 
 ## Provisioning and inital deployment
 
-Requires a Google Cloud product with billing enabled. 
+Requires a Google Cloud product with billing enabled. Presumes running with a project owner account. 
 
 [Download](https://www.terraform.io/downloads.html) and install Terraform for your platform. (For Cloud Shell, get the latest Linux 64-Bit zip URL)
 
