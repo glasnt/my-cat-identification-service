@@ -1,4 +1,5 @@
 terraform {
+  required_version = "~> 0.14.4"
   backend "gcs" {
     bucket = "TFSTATE_BUCKET" # REPLACE ME
     prefix = "test"
@@ -52,6 +53,7 @@ module "services" {
     "cloudfunctions.googleapis.com",
     "vision.googleapis.com"
   ]
+
 }
 
 resource "google_service_account" "cats_worker" {
@@ -120,8 +122,6 @@ resource "google_storage_bucket_iam_policy" "media" {
   ]
 }
 POLICY
-
-  # provider = "google-beta"
 }
 
 # Pre-prepared container
@@ -172,7 +172,7 @@ resource "google_cloud_run_service_iam_policy" "noauth" {
   service  = google_cloud_run_service.cats.name
 
   policy_data = data.google_iam_policy.noauth.policy_data
-  depends_on = [google_cloud_run_service.cats]
+  depends_on  = [google_cloud_run_service.cats]
 }
 
 
