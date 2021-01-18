@@ -30,6 +30,7 @@ locals {
   sampledata_folder = "sample-data"
 
   deployment_name = "cats"
+  cats_worker_sa   = "serviceAccount:${google_service_account.cats_worker.email}"
 }
 
 ####
@@ -53,6 +54,21 @@ module "services" {
   ]
 }
 
+resource "google_service_account" "cats_worker" {
+  account_id   = "cats-worker"
+  display_name = "Cats Worker SA"
+}
+
+resource google_project_iam_binding service_permissions {
+  for_each = toset([
+    "run.invoker", "cloudfunctions.invoker"
+  ])
+
+  role       = "roles/${each.key}"
+  members    = [local.cats_worker_sa]
+  depends_on = [google_service_account.cats_worker]
+}
+
 
 ####
 #
@@ -74,7 +90,45 @@ resource "google_storage_bucket_object" "cats" {
   bucket = google_storage_bucket.media.name
 }
 
+#resource "google_storage_bucket_acl" "cats-acl" {
+#  bucket = google_storage_bucket.media.name
+#
+#  role_entity = [
+#    "READER:serviceaccount-${google_service_account.cats_worker.email}",
+#  ]
+#}
+
+#data "google_iam_policy" "media_reader" {
+##  binding {
+#    role = "roles/storage.legacyBucketReader"
+#    members = [local.cats_worker_sa]
+#  }
+#}
+
+#resource "google_storage_bucket_iam_policy" "media_reader" {
+#  bucket = google_storage_bucket.media.name
+#  policy_data = data.google_iam_policy.media_reader.policy_data
+#}
+
+resource "google_storage_bucket_access_control" "public_rule" {
+  bucket = google_storage_bucket.media.name
+  role   = "READER"
+  entity = local.cats_worker_sa
+  depends_on = [google_service_account.cats_worker]
+}
+
+#resource google_storage_bucket_iam_member admin {
+#  bucket = google_storage_bucket.media.name
+##  role   = "roles/storage.objectAdmin"
+#  member = "user:4katiecloudda@gmail.com"
+#}
 # 
+
+####
+#
+# web-service
+#
+###
 
 # Pre-prepared container
 data "google_container_registry_image" "cats" {
@@ -84,12 +138,6 @@ data "google_container_registry_image" "cats" {
   #  }
 }
 
-####
-#
-# web-service
-#
-###
-
 # Cloud Run Service
 resource "google_cloud_run_service" "cats" {
   name                       = local.deployment_name
@@ -98,6 +146,7 @@ resource "google_cloud_run_service" "cats" {
 
   template {
     spec {
+      service_account_name = google_service_account.cats_worker.email
       containers {
         image = "${data.google_container_registry_image.cats.image_url}:latest"
         env {
@@ -155,7 +204,7 @@ data "archive_file" "function" {
 }
 
 resource "google_storage_bucket_object" "archive" {
-  name   = "${local.function_folder}_${timestamp()}.zip" # will delete old items
+  name   = "${local.function_folder}_${data.archive_file.function.output_md5}.zip" # will delete old items
 
   bucket = google_storage_bucket.source.name
   source = data.archive_file.function.output_path
@@ -174,6 +223,8 @@ resource "google_cloudfunctions_function" "function" {
   source_archive_object = google_storage_bucket_object.archive.name
   trigger_http          = true
   entry_point           = "detect_cat"
+  service_account_email = google_service_account.cats_worker.email
+
 }
 
 output "service_url" {

@@ -2,3 +2,4 @@ google-cloud-storage
 Flask
 gunicorn
 urllib3
+requests

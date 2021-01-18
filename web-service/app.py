@@ -1,5 +1,6 @@
 import os
 import urllib3
+import requests
 import flask
 from google.cloud import storage
 import tempfile
@@ -24,12 +25,24 @@ def get_cats(bucket):
     images = storage.list_blobs(BUCKET_NAME)
     http = urllib3.PoolManager()
 
+    # https://cloud.google.com/functions/docs/securing/authenticating#functions-bearer-token-example-python
+    metadata_server_url = 'http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience='
+    token_full_url = metadata_server_url + FUNCTION_NAME
+    token_headers = {'Metadata-Flavor': 'Google'}
+
+    #token_response = http.request("GET", token_full_url, headers=token_headers)
+    #jwt = token_response.data.decode('utf-8')
+    token_response = requests.get(token_full_url, headers=token_headers)
+    jwt = token_response.text
+    function_headers = {'Authorization': f'bearer {jwt}'}
+
     cats = []
     for img in images:
         r = http.request(
             "GET",
             FUNCTION_NAME,
             fields={"bucket": BUCKET_NAME, "resource": img.name},
+            headers=function_headers
         )
         cats.append({"image": img, "data": r.data.decode('utf-8')})
 
