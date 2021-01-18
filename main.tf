@@ -89,46 +89,39 @@ resource "google_storage_bucket_object" "cats" {
   source = "${path.module}/${local.sampledata_folder}/${each.value}"
   bucket = google_storage_bucket.media.name
 }
-
-#resource "google_storage_bucket_acl" "cats-acl" {
-#  bucket = google_storage_bucket.media.name
-#
-#  role_entity = [
-#    "READER:serviceaccount-${google_service_account.cats_worker.email}",
-#  ]
-#}
-
-#data "google_iam_policy" "media_reader" {
-##  binding {
-#    role = "roles/storage.legacyBucketReader"
-#    members = [local.cats_worker_sa]
-#  }
-#}
-
-#resource "google_storage_bucket_iam_policy" "media_reader" {
-#  bucket = google_storage_bucket.media.name
-#  policy_data = data.google_iam_policy.media_reader.policy_data
-#}
-
-resource "google_storage_bucket_access_control" "public_rule" {
+resource "google_storage_bucket_iam_policy" "media" {
   bucket = google_storage_bucket.media.name
-  role   = "READER"
-  entity = local.cats_worker_sa
-  depends_on = [google_service_account.cats_worker]
+
+  policy_data = <<POLICY
+{
+  "bindings": [
+    {
+      "members": [
+        "projectEditor:${var.project}",
+        "projectOwner:${var.project}"
+      ],
+      "role": "roles/storage.legacyBucketOwner"
+    },
+    {
+      "members": [
+        "projectViewer:${var.project}",
+        "${local.cats_worker_sa}"
+      ],
+      "role": "roles/storage.legacyBucketReader"
+    },
+    {
+      "members": [
+        "projectViewer:${var.project}",
+        "${local.cats_worker_sa}"
+      ],
+      "role": "roles/storage.legacyObjectReader"
+    }
+  ]
 }
+POLICY
 
-#resource google_storage_bucket_iam_member admin {
-#  bucket = google_storage_bucket.media.name
-##  role   = "roles/storage.objectAdmin"
-#  member = "user:4katiecloudda@gmail.com"
-#}
-# 
-
-####
-#
-# web-service
-#
-###
+ # provider = "google-beta"
+}
 
 # Pre-prepared container
 data "google_container_registry_image" "cats" {

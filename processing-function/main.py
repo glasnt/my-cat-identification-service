@@ -16,12 +16,15 @@ def detect_cat(request):
     Testing data: {"bucket": "glasnt-terraform-3476-test", "resource": "loan-7AIDE8PrvA0-unsplash.jpg"}
 
     """
-    request_json = request.get_json(silent=True)
+    print("ARGS", request.args)
 
-    if request_json and 'bucket' in request_json:
-        bucket = request_json['bucket']
-    if request_json and 'resource' in request_json:
-        resource = request_json['resource']
+    if 'bucket' in request.args:
+        bucket = request.args['bucket']
+    if 'resource' in request.args:
+        resource = request.args['resource']
+
+    if not resource and not bucket:
+      return "Invalid invocation", 400
 
     uri = f"gs://{bucket}/{resource}"
 
