@@ -34,7 +34,7 @@ sed -i s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf
 Build base container image, and apply terraform
 
 ```
-gcloud services enable 
+gcloud services enable cloudbuild.googleapis.com
 gcloud builds submit --tag gcr.io/${PROJECT_ID}/web-service web-service
 terraform init
 terraform apply
@@ -46,7 +46,7 @@ Allow Cloud Build editor access
 
 ```
 gcloud services enable \
-    cloudbuild.googleapis.com\
+    iam.googleapis.com \
     compute.googleapis.com \
     cloudresourcemanager.googleapis.com
 
