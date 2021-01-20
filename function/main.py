@@ -1,8 +1,15 @@
-from flask import escape
+import io
 
-from google.cloud import vision
-client = vision.ImageAnnotatorClient()
-image = vision.Image()
+
+from flask import jsonify
+
+from google.cloud import vision, storage
+from PIL import Image
+
+
+vision_client = vision.ImageAnnotatorClient()
+storage_client = storage.Client()
+
 
 def detect_cat(request):
     """
@@ -16,21 +23,37 @@ def detect_cat(request):
     Testing data: {"bucket": "glasnt-terraform-3476-test", "resource": "loan-7AIDE8PrvA0-unsplash.jpg"}
 
     """
-    print("ARGS", request.args)
+    bucket = request.args.get("bucket", None)
+    resource = request.args.get("resource", None)
 
-    if 'bucket' in request.args:
-        bucket = request.args['bucket']
-    if 'resource' in request.args:
-        resource = request.args['resource']
+    if not bucket:
+        return "Invalid invocation: require bucket", 400
 
-    if not resource and not bucket:
-      return "Invalid invocation", 400
+    if not resource:
+        return "Invalid invocation: require resource", 400
 
     uri = f"gs://{bucket}/{resource}"
 
-    image.source.image_uri = uri
-    response = client.label_detection(image=image)
+    data = {}
+
+    blob = storage_client.bucket(bucket).get_blob(resource).download_as_bytes()
+
+    # Image specifics
+    img = Image.open(io.BytesIO(blob))
+    data["image_details"] = {
+        "height": img.height,
+        "width": img.width,
+        "format": img.format,
+    }
+
+    # Vision API Labels
+    vision_image = vision.Image()
+    vision_image.source.image_uri = uri
+    response = vision_client.label_detection(image=vision_image)
     labels = response.label_annotations
-    result = ", ".join([l.description for l in labels])
-    print(result)
-    return result
+    data["labels"] = [l.description for l in labels]
+
+    # Cat?
+    data["is_cat"] = "Cat" in data["labels"]
+
+    return jsonify(data)

@@ -1,5 +1,4 @@
 import os
-import urllib3
 import requests
 import flask
 from google.cloud import storage
@@ -23,28 +22,28 @@ def cat(img):
 
 def get_cats(bucket):
     images = storage.list_blobs(BUCKET_NAME)
-    http = urllib3.PoolManager()
 
+    # auth when running a privte function
     # https://cloud.google.com/functions/docs/securing/authenticating#functions-bearer-token-example-python
-    metadata_server_url = 'http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience='
-    token_full_url = metadata_server_url + FUNCTION_NAME
-    token_headers = {'Metadata-Flavor': 'Google'}
+    if "cloudfunctions.net" in FUNCTION_NAME:
+        metadata_server_url = "http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience="
+        token_full_url = metadata_server_url + FUNCTION_NAME
+        token_headers = {"Metadata-Flavor": "Google"}
 
-    #token_response = http.request("GET", token_full_url, headers=token_headers)
-    #jwt = token_response.data.decode('utf-8')
-    token_response = requests.get(token_full_url, headers=token_headers)
-    jwt = token_response.text
-    function_headers = {'Authorization': f'bearer {jwt}'}
+        token_response = requests.get(token_full_url, headers=token_headers)
+        jwt = token_response.text
+        function_headers = {"Authorization": f"bearer {jwt}"}
+    else:
+        function_headers = {}
 
     cats = []
     for img in images:
-        r = http.request(
-            "GET",
+        resp = requests.get(
             FUNCTION_NAME,
-            fields={"bucket": BUCKET_NAME, "resource": img.name},
-            headers=function_headers
+            params={"bucket": BUCKET_NAME, "resource": img.name},
+            headers=function_headers,
         )
-        cats.append({"image": img, "data": r.data.decode('utf-8')})
+        cats.append({"image": img, "data": resp.json()})
 
     return cats
 
@@ -53,11 +52,17 @@ def get_cats(bucket):
 def hello_cats():
     if not BUCKET_NAME:
         return flask.render_template_string(
-            "<h1>I have no cats.</h1>BUCKET_NAME environment variable required."
+            "Missing environment variable: BUCKET_NAME."
+        )
+
+    if not FUNCTION_NAME:
+        return flask.render_template_string(
+            "Missing environment variable: FUNCTION_NAME."
         )
 
     cats = get_cats(BUCKET_NAME)
-    return flask.render_template("cats.html", cats=cats)
+    have_cat = any([c["data"]["is_cat"] for c in cats])
+    return flask.render_template("cats.html", cats=cats, have_cat=have_cat)
 
 
 if __name__ == "__main__":
