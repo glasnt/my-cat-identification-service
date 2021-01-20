@@ -90,7 +90,35 @@ Then run `terraform init && terraform apply` again.
 
 If when developing the terraform manifest and state is complex, configure manually, then export settings using [terraformer](https://github.com/GoogleCloudPlatform/terraformer).
 
+## Local debugging
+
+Install functions framework, and run function locally:
+
+```
+cd function
+
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt functions-framework
+
+functions-framework --target detect_cat --debug
+```
+
+In another terminal, run service locally, refercing local function: 
+
+```
+cd service
+
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+BUCKET_NAME=${PROJECT_ID}-media FUNCTION_NAME=http://0.0.0.0:8080 PORT=8081 python app.py
+```
+
+Open website at [http://0.0.0.0:8081/](http://0.0.0.0:8081/)
 
 # Learn more
 
- * https://cloud.google.com/solutions/managing-infrastructure-as-code
+ * [Managing Infrastructure as Code](https://cloud.google.com/solutions/managing-infrastructure-as-code)
+ * [Processing images from Cloud Storage tutorial ](https://cloud.google.com/run/docs/tutorials/image-processing)
