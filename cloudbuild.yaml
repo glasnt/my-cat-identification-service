@@ -1,5 +1,3 @@
-# https://cloud.google.com/solutions/managing-infrastructure-as-code
-
 steps:
   - id: "build image"
     name: "gcr.io/cloud-builders/docker"
@@ -10,25 +8,5 @@ steps:
     name: "gcr.io/cloud-builders/docker"
     args: ["push", "gcr.io/${PROJECT_ID}/${_SERVICE_IMAGE}"]
 
-  - id: "tf init"
-    name: "hashicorp/terraform:${_TERRAFORM_VERSION}"
-    args: ["init"]
-
-  - id: "tf plan"
-    name: "hashicorp/terraform:${_TERRAFORM_VERSION}"
-    args: ["plan", "-var", "project=${PROJECT_ID}"]
-
-  - id: "tf apply"
-    name: "hashicorp/terraform:${_TERRAFORM_VERSION}"
-    args: ["apply", "-auto-approve", "-var", "project=${PROJECT_ID}"]
-
-  - id: 'deploy'
-    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args: ["run", "deploy", "${_SERVICE_NAME}", "--platform", "managed", "--region", "${_REGION}",
-          "--image", "gcr.io/$PROJECT_ID/${_SERVICE_IMAGE}"]
 substitutions:
   _SERVICE_IMAGE: web-service
-  _SERVICE_NAME: cats
-  _TERRAFORM_VERSION: "0.14.4"
-  _REGION: "us-central1"

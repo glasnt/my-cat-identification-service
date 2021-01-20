@@ -2,67 +2,48 @@
 
 Uses Vision API to detect images in a Cloud Function. Renders a front end iterating on the contents of a bucket, calling aforementioned function.
 
-## Provisioning and inital deployment
+## Provisioning and configuration setup
 
 Requires a Google Cloud product with billing enabled. Presumes running with a project owner account. 
 
-[Download](https://www.terraform.io/downloads.html) and install Terraform for your platform. (For Cloud Shell, get the latest Linux 64-Bit zip URL)
+* [Download](https://www.terraform.io/downloads.html) and install Terraform for your platform. (For Cloud Shell, get the latest Linux 64-Bit zip URL)
 
-```
-wget https://releases.hashicorp.com/terraform/0.14.4/terraform_0.14.4_linux_amd64.zip -o terraform.zip # Version may change
-unzip terraform.zip
-chmod +x terraform
-sudo mv terraform /usr/local/bin/
-```
+    ```
+    wget https://releases.hashicorp.com/terraform/0.14.4/terraform_0.14.4_linux_amd64.zip -o terraform.zip # Version may change
+    unzip terraform.zip
+    chmod +x terraform
+    sudo mv terraform /usr/local/bin/
+    ```
 
-Establish terraform state storage in your project
+* Clone the source code
+    ```
+    git clone (this repo) cat_service
+    cd cat_service
+    ```
 
-```
-PROJECT_ID=$(gcloud config get-value project)
-gsutil mb gs://${PROJECT_ID}-tfstate
-gsutil versioning set on gs://${PROJECT_ID}-tfstate
-```
+* Establish terraform state storage in your project
+    ```
+    PROJECT_ID=$(gcloud config get-value project)
+    gsutil mb gs://${PROJECT_ID}-tfstate
+    gsutil versioning set on gs://${PROJECT_ID}-tfstate
+    sed -i s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf
+    ```
 
-Clone terraform configuration, set state location
-
-```
-git clone (this repo) cat_service
-cd cat_service
-sed -i s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf
-```
-
-Build base container image, and apply terraform
-
-```
-gcloud services enable cloudbuild.googleapis.com
-gcloud builds submit --tag gcr.io/${PROJECT_ID}/web-service web-service
-terraform init
-terraform apply
-```
-
-## Continuous Deployment
-
-Allow Cloud Build editor access
-
-```
-gcloud services enable \
-    iam.googleapis.com \
-    compute.googleapis.com \
-    cloudresourcemanager.googleapis.com
-
-CLOUDBUILD_SA="$(gcloud projects describe $PROJECT_ID --format 'value(projectNumber)')@cloudbuild.gserviceaccount.com"
-
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-    --member serviceAccount:$CLOUDBUILD_SA --role roles/editor
-```
-
-Run the build
+## Build the base service container
 
 ```
 gcloud builds submit
 ```
 
-## General Terraform tips
+## Apply Terraform
+```
+terraform init
+terraform apply
+```
+
+---
+
+# General Terraform tips
 
 ### On error, reapply
 
@@ -88,3 +69,8 @@ Then run `terraform init && terraform apply` again.
 ### Manifest development
 
 If when developing the terraform manifest and state is complex, configure manually, then export settings using [terraformer](https://github.com/GoogleCloudPlatform/terraformer).
+
+
+# Learn more
+
+ * https://cloud.google.com/solutions/managing-infrastructure-as-code
