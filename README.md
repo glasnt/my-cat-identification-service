@@ -26,7 +26,12 @@ Requires a Google Cloud product with billing enabled. Presumes running with a pr
     PROJECT_ID=$(gcloud config get-value project)
     gsutil mb gs://${PROJECT_ID}-tfstate
     gsutil versioning set on gs://${PROJECT_ID}-tfstate
-    sed -i s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf
+
+    # Linux
+    sed -i s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf 
+
+    # macOS
+    sed -i "" s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf
     ```
 
 ## Build the base service container
@@ -45,15 +50,30 @@ terraform apply
 
 # General Terraform tips
 
-### On error, reapply
+## Configuration files
+
+
+Terraform standard files: 
+
+* `main.tf` - the main Terraform file
+* `variables.tf` - declares variables
+* `outputs.tf` - declares outputs
+
+Custom files: 
+* `project.tf` - the project level elements, including the IAM service account
+* `function.tf` - the processing function, including the Cloud Function
+* `service.tf` - the web service, including the Cloud Run service
+* `media.tf` - the media assets, including the Cloud Storage bucket
+
+## On error, reapply
 
 Sometimes issues can occur where services are eventually consistant. If you encounter an error relating to services not being enabled, or resources not existing, try running terraform again before continuing.
 
-### Check the version
+## Check the version
 
 This tutorial opts to use Cloud Builders for terraform, to prevent having to install terraform locally, or using an outdated version (this configuration uses syntax not available in the version available by default on Cloud Shell).
 
-### State restoration
+## State restoration
 
 If state is lost, it can be recreated by importing the stateful elements, and deleting the stateless ones. For example:
 
@@ -66,7 +86,7 @@ gcloud run services delete cats
 
 Then run `terraform init && terraform apply` again. 
 
-### Manifest development
+## Manifest development
 
 If when developing the terraform manifest and state is complex, configure manually, then export settings using [terraformer](https://github.com/GoogleCloudPlatform/terraformer).
 

@@ -1,0 +1,44 @@
+data "google_container_registry_image" "cats" {
+  name = local.service_name
+}
+
+resource "google_cloud_run_service" "cats" {
+  name                       = local.service_name
+  location                   = var.region
+  autogenerate_revision_name = true
+
+  template {
+    spec {
+      service_account_name = google_service_account.cats_worker.email
+      containers {
+        image = "${data.google_container_registry_image.cats.image_url}:latest"
+        env {
+          name  = "BUCKET_NAME"
+          value = google_storage_bucket.media.name
+        }
+        env {
+          name  = "FUNCTION_NAME"
+          value = google_cloudfunctions_function.function.https_trigger_url
+        }
+      }
+    }
+  }
+}
+
+data "google_iam_policy" "noauth" {
+  binding {
+    role = "roles/run.invoker"
+    members = [
+      "allUsers",
+    ]
+  }
+}
+
+resource "google_cloud_run_service_iam_policy" "noauth" {
+  location = google_cloud_run_service.cats.location
+  project  = google_cloud_run_service.cats.project
+  service  = google_cloud_run_service.cats.name
+
+  policy_data = data.google_iam_policy.noauth.policy_data
+  depends_on  = [google_cloud_run_service.cats]
+}
