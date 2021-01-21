@@ -4,6 +4,12 @@ terraform {
     bucket = "glasnt-tfthrow-0602-tfstate" # REPLACE ME
     prefix = "test"
   }
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "3.53.0"
+    }
+  }
 }
 
 provider "google" {
