@@ -90,6 +90,13 @@ Then run `terraform init && terraform apply` again.
 
 If when developing the terraform manifest and state is complex, configure manually, then export settings using [terraformer](https://github.com/GoogleCloudPlatform/terraformer).
 
+## Force re-deploy of service
+
+```
+gcloud builds submit
+gcloud run deploy --image gcr.io/${PROJECT_ID}/cats
+```
+
 ## Local debugging
 
 Install functions framework, and run function locally:
