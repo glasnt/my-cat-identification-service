@@ -1,11 +1,8 @@
 import io
 
-
 from flask import jsonify
-
-from google.cloud import vision, storage
+from google.cloud import storage, vision
 from PIL import Image
-
 
 vision_client = vision.ImageAnnotatorClient()
 storage_client = storage.Client()
@@ -51,7 +48,7 @@ def detect_cat(request):
     vision_image.source.image_uri = uri
     response = vision_client.label_detection(image=vision_image)
     labels = response.label_annotations
-    data["labels"] = [l.description for l in labels]
+    data["labels"] = [label.description for label in labels]
 
     # Cat?
     data["is_cat"] = "Cat" in data["labels"]
