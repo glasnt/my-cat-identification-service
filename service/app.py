@@ -1,8 +1,9 @@
 import os
-import requests
-import flask
-from google.cloud import storage
 import tempfile
+
+import flask
+import requests
+from google.cloud import storage
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 FUNCTION_NAME = os.environ.get("FUNCTION_NAME")
