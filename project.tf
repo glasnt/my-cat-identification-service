@@ -1,24 +1,31 @@
-module "services" {
-  source  = "terraform-google-modules/project-factory/google//modules/project_services"
-  version = "~> 10.0"
-
-  project_id = var.project
-
-  activate_apis = [
-    "run.googleapis.com",
-    "iam.googleapis.com",
-    "cloudbuild.googleapis.com",
-    "cloudfunctions.googleapis.com",
-    "vision.googleapis.com"
-  ]
-
+# Enable services
+resource "google_project_service" "vision" {
+  service = "vision.googleapis.com"
 }
 
+resource "google_project_service" "run" {
+  service = "run.googleapis.com"
+}
+
+resource "google_project_service" "iam" {
+  service = "iam.googleapis.com"
+}
+
+resource "google_project_service" "cloudbuild" {
+  service = "cloudbuild.googleapis.com"
+}
+
+resource "google_project_service" "cloudfunctions" {
+  service = "cloudfunctions.googleapis.com"
+}
+
+# Create a service account
 resource "google_service_account" "cats_worker" {
   account_id   = "cats-worker"
   display_name = "Cats Worker SA"
 }
 
+# Set permissions
 resource "google_project_iam_binding" "service_permissions" {
   for_each = toset([
     "run.invoker", "cloudfunctions.invoker"

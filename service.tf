@@ -1,3 +1,4 @@
+# The Cloud Run service
 resource "google_cloud_run_service" "cats" {
   name                       = local.service_name
   location                   = var.region
@@ -23,6 +24,8 @@ resource "google_cloud_run_service" "cats" {
     percent         = 100
     latest_revision = true
   }
+
+  depends_on = [ google_project_service.run ]
 }
 
 # Set service public

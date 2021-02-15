@@ -1,3 +1,4 @@
+# The Cloud Function
 resource "google_cloudfunctions_function" "function" {
   name        = local.function_name
   description = "processing"
@@ -10,6 +11,8 @@ resource "google_cloudfunctions_function" "function" {
   trigger_http          = true
   entry_point           = "detect_cat"
   service_account_email = google_service_account.cats_worker.email
+
+  depends_on = [ google_project_service.cloudfunctions ]
 
 }
 
