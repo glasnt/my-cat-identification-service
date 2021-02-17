@@ -16,16 +16,6 @@ provider "google" {
   project = var.project
 }
 
-variable "project" {
-  type        = string
-  description = "Google Cloud Platform Project ID"
-}
-
-variable "region" {
-  default = "us-central1"
-  type    = string
-}
-
 locals {
   function_folder = "function"
   function_name   = "processing"
