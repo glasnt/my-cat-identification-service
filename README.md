@@ -34,6 +34,13 @@ Requires a Google Cloud product with billing enabled. Presumes running with a pr
     sed -i "" s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf
     ```
 
+* (Optional) For a production use case, [create a service account](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/getting_started#adding-credentials) and enable the associated service: 
+
+    ```
+    gcloud service enable cloudresoursemanager.googleapis.com
+    ```
+
+
 ## Build the base service container
 
 ```

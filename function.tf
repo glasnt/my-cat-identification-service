@@ -12,8 +12,7 @@ resource "google_cloudfunctions_function" "function" {
   entry_point           = "detect_cat"
   service_account_email = google_service_account.cats_worker.email
 
-  depends_on = [ google_project_service.cloudfunctions ]
-
+  depends_on = [google_project_service.cloudfunctions]
 }
 
 # A dedicated Cloud Storage bucket to store the zip source

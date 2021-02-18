@@ -1,8 +1,7 @@
 terraform {
   backend "gcs" {
-    # bucket = "TFSTATE\_BUCKET-tfstate"
-    bucket = "TFSTATE_BUCKET-tfstate" # REPLACE ME
-    prefix = "test"
+    # bucket = "TFSTATE\_BUCKET"
+    bucket = "glasnt-tfthrow-9099-tfstate" # REPLACE ME
   }
   required_providers {
     google = {

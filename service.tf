@@ -25,7 +25,7 @@ resource "google_cloud_run_service" "cats" {
     latest_revision = true
   }
 
-  depends_on = [ google_project_service.run ]
+  depends_on = [google_project_service.run]
 }
 
 # Set service public
