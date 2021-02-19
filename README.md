@@ -2,7 +2,7 @@
 
 Uses Vision API to detect images in a Cloud Function. Renders a front end iterating on the contents of a bucket, calling aforementioned function.
 
-## Provisioning and configuration setup
+## Get Terraform and the Code
 
 Requires a Google Cloud product with billing enabled. Presumes running with a project owner account. 
 
@@ -21,20 +21,21 @@ Requires a Google Cloud product with billing enabled. Presumes running with a pr
     cd cat_service
     ```
 
+## Optional setup
+
+For production use cases, it's best to setup a terraform state storage bucket and service account
+
+
 * Establish terraform state storage in your project
     ```
     PROJECT_ID=$(gcloud config get-value project)
     gsutil mb gs://${PROJECT_ID}-tfstate
     gsutil versioning set on gs://${PROJECT_ID}-tfstate
-
-    # Linux
-    sed -i s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf 
-
-    # macOS
-    sed -i "" s/TFSTATE_BUCKET/${PROJECT_ID}-tfstate/g main.tf
     ```
 
-* (Optional) For a production use case, [create a service account](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/getting_started#adding-credentials) and enable the associated service: 
+* In `main.tf`, uncomment the 3 `backend "gcs"` lines, and replace `PROJECT_ID` with your project ID.   
+
+* [Create a service account](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/getting_started#adding-credentials) and enable the associated service: 
 
     ```
     gcloud service enable cloudresoursemanager.googleapis.com

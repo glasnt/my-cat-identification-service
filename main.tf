@@ -1,8 +1,7 @@
 terraform {
-  backend "gcs" {
-    # bucket = "TFSTATE\_BUCKET"
-    bucket = "glasnt-tfthrow-9099-tfstate" # REPLACE ME
-  }
+  #backend "gcs" {
+  #  # bucket = "PROJECT_ID-tfstate"
+  #}
   required_providers {
     google = {
       source  = "hashicorp/google"
