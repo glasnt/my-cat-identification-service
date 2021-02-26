@@ -1,7 +1,4 @@
 terraform {
-  #backend "gcs" {
-  #  # bucket = "PROJECT_ID-tfstate"
-  #}
   required_providers {
     google = {
       source  = "hashicorp/google"
